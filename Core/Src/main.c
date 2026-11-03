@@ -129,7 +129,7 @@ int main(void)
 		  }
 
 
-		  joy_data.buttons = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
+		  joy_data.buttons = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
 
 		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&joy_data, sizeof(joy_data));
 		}
