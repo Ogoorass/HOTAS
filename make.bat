@@ -1,2 +1,2 @@
-arm-none-eabi-objcopy.exe -O binary .\Debug\Joystick.elf .\Debug\Joystick.bin
-st-flash write .\Debug\Joystick.bin 0x08000000
+arm-none-eabi-objcopy.exe -O binary .\Debug\HOTAS.elf .\Debug\HOTAS.bin
+st-flash write .\Debug\HOTAS.bin 0x08000000
