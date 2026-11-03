@@ -66,7 +66,7 @@ typedef struct __attribute__((packed)) {
     uint16_t dy;
 } joystick_report_t;
 
-joystick_report_t joy_data = {0};
+joystick_report_t joy_data = {0,0,2047};
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
 /* USER CODE END 0 */
@@ -120,18 +120,17 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  if(HAL_GetTick() - reportSendTime > 4) {
 		  reportSendTime = HAL_GetTick();
-		  uint32_t adc_raw;
-		  //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&joy_data, sizeof(joy_data));
+
+
 		  if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-			  adc_raw = HAL_ADC_GetValue(&hadc1);
-			  joy_data.dx = (uint16_t)adc_raw;
+			  joy_data.dx = (uint16_t)HAL_ADC_GetValue(&hadc1);
 			  HAL_ADC_Start(&hadc1);
 		  }
 
 
 		  joy_data.buttons = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
 
-		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&joy_data, sizeof(joy_data));
 		}
 
   }
