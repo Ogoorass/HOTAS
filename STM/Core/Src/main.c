@@ -43,6 +43,8 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
+I2C_HandleTypeDef hi2c1;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -51,6 +53,7 @@ ADC_HandleTypeDef hadc1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 long map(long x, long in_min, long in_max, long out_min, long out_max) {
@@ -79,7 +82,10 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+#define REQ_COUNT 2
+	uint8_t request[REQ_COUNT] = {0x21, 0x37};
+#define REC_COUNT 1
+	uint8_t receive[REC_COUNT] = {0};
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -102,11 +108,12 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_ADC1_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
   HAL_ADC_Start(&hadc1);
-
+  HAL_I2C_
   uint32_t reportSendTime = 0;
 
   /* USER CODE END 2 */
@@ -129,8 +136,11 @@ int main(void)
 		  }
 
 
-		  joy_data.buttons = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
+		  // joy_data.buttons = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
+		  joy_data.buttons = *receive;
 
+		  HAL_I2C_Master_Transmit(&hi2c1, 2, request, REQ_COUNT, 1000);
+		  HAL_I2C_Master_Receive(&hi2c1, 2, receive, REC_COUNT, 1000);
 		}
 
   }
@@ -233,6 +243,40 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
 
 }
 
