@@ -3230,18 +3230,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "Powinno niby być 4.7k\nale i tak potrzebujemy 5k\nNIE MOŻE BYĆ INTERNAL PULLUP"
-		(exclude_from_sim no)
-		(at 119.126 161.544 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "5e8b2dc3-ebcc-4384-a87a-32b93df9c134")
-	)
-	(text "Max 10k na potencjometrze,\nRatio rezystancji 1:2 (Stały do pot)\n"
+	(text "Zakładamy zakres 50 stopni\nA więc rezystor stały to 1/12\nNominalnej potencjometru\nLepiej dać więcej bo to\nzmniejsza napięcie na wyjściu\nObecnie proponuje 10k\nMax output ~3.2V"
 		(exclude_from_sim no)
 		(at 248.412 111.252 0)
 		(effects
@@ -5318,7 +5307,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5k"
+		(property "Value" "10k"
 			(at 229.87 114.2999 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6499,7 +6488,6 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "52e70729-2043-49cd-85e0-99f70ae24796")
 		(property "Reference" "R4"
 			(at 138.43 142.2399 0)
@@ -6512,8 +6500,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5k"
-			(at 138.43 144.7799 0)
+		(property "Value" "4.7k"
+			(at 137.668 144.78 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6581,7 +6569,6 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "55b01d7d-75cb-44c8-87b2-6d26497356b6")
 		(property "Reference" "R3"
 			(at 125.73 142.2399 0)
@@ -6594,8 +6581,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5k"
-			(at 125.73 144.7799 0)
+		(property "Value" "4.7k"
+			(at 125.222 144.78 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7327,7 +7314,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5k"
+		(property "Value" "10k"
 			(at 243.84 114.2999 0)
 			(show_name no)
 			(do_not_autoplace no)
