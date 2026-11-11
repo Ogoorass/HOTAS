@@ -72,6 +72,13 @@ typedef struct __attribute__((packed)) {
 joystick_report_t joy_data = {0,0,2047};
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
+
+#define PEDALY_ADR (8 << 1)
+
+#define REC_COUNT 3
+uint8_t receive[REC_COUNT] = {0};
+
+
 /* USER CODE END 0 */
 
 /**
@@ -82,10 +89,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-#define REQ_COUNT 2
-	uint8_t request[REQ_COUNT] = {0x21, 0x37};
-#define REC_COUNT 1
-	uint8_t receive[REC_COUNT] = {0};
+
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -113,7 +118,6 @@ int main(void)
 
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
   HAL_ADC_Start(&hadc1);
-  HAL_I2C_
   uint32_t reportSendTime = 0;
 
   /* USER CODE END 2 */
@@ -130,18 +134,14 @@ int main(void)
 		  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&joy_data, sizeof(joy_data));
 
 
-		  if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-			  joy_data.dx = (uint16_t)HAL_ADC_GetValue(&hadc1);
-			  HAL_ADC_Start(&hadc1);
+		  if(HAL_I2C_IsDeviceReady(&hi2c1, PEDALY_ADR, 1, 1) == HAL_OK) {
+			  HAL_I2C_Master_Transmit(&hi2c1, PEDALY_ADR, 0, 0, 2);
+			  HAL_I2C_Master_Receive(&hi2c1, PEDALY_ADR, receive, REC_COUNT, 2);
+			  joy_data.buttons = 2[receive];
 		  }
 
 
-		  // joy_data.buttons = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
-		  joy_data.buttons = *receive;
-
-		  HAL_I2C_Master_Transmit(&hi2c1, 2, request, REQ_COUNT, 1000);
-		  HAL_I2C_Master_Receive(&hi2c1, 2, receive, REC_COUNT, 1000);
-		}
+	  }
 
   }
   /* USER CODE END 3 */
