@@ -41,6 +41,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -51,6 +52,7 @@ I2C_HandleTypeDef hi2c1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
@@ -70,23 +72,20 @@ throttle_data_t th_data = {69};
 uint8_t txBuffer[sizeof(throttle_data_t)] = {0};
 uint8_t rxBuffer[8] = {0};
 
+volatile uint16_t adcBuffer[2] = {0};
+
 extern void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
-	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
 	if (hi2c->Instance == I2C1) {
 
 	    if (TransferDirection == I2C_DIRECTION_RECEIVE) {
 
-
 	      memcpy(txBuffer, &th_data, sizeof(throttle_data_t));
 
 	      HAL_I2C_Slave_Seq_Transmit_IT(&hi2c1, txBuffer, sizeof(throttle_data_t), I2C_FIRST_AND_LAST_FRAME);
 	    }
-
 	}
-
-
 }
 
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
@@ -111,6 +110,16 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
     }
     HAL_I2C_EnableListen_IT(&hi2c1);
   }
+}
+
+
+
+
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
+	if(hadc->Instance == ADC1) {
+
+	}
 }
 /* USER CODE END 0 */
 
@@ -143,10 +152,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   HAL_I2C_EnableListen_IT(&hi2c1);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 2);
 
 
   /* USER CODE END 2 */
@@ -156,8 +167,19 @@ int main(void)
   while (1)
   {
 
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1));
-	th_data.buttons = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET ? 1 : 0;
+	th_data.left_thr = adcBuffer[0];
+	th_data.right_thr = adcBuffer[1];
+
+	th_data.buttons = !(
+			(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1)  & (1 << 0)) |
+			(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0)  & (1 << 1)) |
+			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)  & (1 << 2)) |
+			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)  & (1 << 3)) |
+			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5)  & (1 << 4)) |
+			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)  & (1 << 5)) |
+			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3)  & (1 << 6)) |
+			(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) & (1 << 7)));
+
 
     /* USER CODE END WHILE */
 
@@ -230,14 +252,14 @@ static void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ScanConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.NbrOfConversion = 2;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
@@ -248,7 +270,16 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_144CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_2;
+  sConfig.Rank = 2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -294,6 +325,22 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -306,22 +353,8 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA3 PA4 PA5 PA6
                            PA7 */
@@ -335,13 +368,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_12;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB10 */
-  GPIO_InitStruct.Pin = GPIO_PIN_10;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */

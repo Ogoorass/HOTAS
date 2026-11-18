@@ -23,13 +23,16 @@ void loop() {
   Wire.requestFrom(THROTTLE_ADDR, sizeof(Throttle_data));
   i=0;
   while(Wire.available()) {
-    char c = Wire.read();
-    ((char*)(&td))[i++] = c;
-    Serial.print("read : ");
-    Serial.println((int)c);
+    ((char*)(&td))[i++] = Wire.read();
   }
   Serial.print("Buttons: ");
-  Serial.println(td.buttons);
-  delay(1000);
+  for(int i=0;i<8;i++) {
+    Serial.print(td.buttons & (1 << i));
+  }
+  Serial.print("\tL TH: ");
+  Serial.print(td.left_thr);
+  Serial.print("\tR TH: ");
+  Serial.println(td.right_thr);
+  delay(300);
 }
 
