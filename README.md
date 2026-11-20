@@ -1,3 +1,16 @@
+# RJ45 connector pinout
+![RJ45 socket image](./img/RJ45_socket.png)
+| PIN | DEFINITION |
+| :-: | :------: |
+|  1  |  5V   |
+|  2  |  GND  |
+|  3  |   -   |
+|  4  |   -   |
+|  5  |   -   |
+|  6  |   -   |
+|  7  |  SDA  |
+|  8  |  SCL  |
+
 # Throttle
 ## Pinout
 | PIN | FUNCTION |
