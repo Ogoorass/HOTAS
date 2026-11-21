@@ -170,15 +170,16 @@ int main(void)
 	th_data.left_thr = adcBuffer[0];
 	th_data.right_thr = adcBuffer[1];
 
-	th_data.buttons = !(
-			(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1)  & (1 << 0)) |
-			(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0)  & (1 << 1)) |
-			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)  & (1 << 2)) |
-			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)  & (1 << 3)) |
-			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5)  & (1 << 4)) |
-			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4)  & (1 << 5)) |
-			(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3)  & (1 << 6)) |
-			(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) & (1 << 7)));
+	th_data.buttons = ~(
+			((uint8_t)HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) << 0) |
+			((uint8_t)HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) << 1) |
+			((uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7) << 2) |
+			((uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6) << 3) |
+			((uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5) << 4) |
+			((uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4) << 5) |
+			((uint8_t)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3) << 6) |
+			((uint8_t)HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) << 7)
+		);
 
 
     /* USER CODE END WHILE */

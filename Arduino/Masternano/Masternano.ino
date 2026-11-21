@@ -27,7 +27,7 @@ void loop() {
   }
   Serial.print("Buttons: ");
   for(int i=0;i<8;i++) {
-    Serial.print(td.buttons & (1 << i));
+    Serial.print((bool)(td.buttons & (1 << i)));
   }
   Serial.print("\tL TH: ");
   Serial.print(td.left_thr);
